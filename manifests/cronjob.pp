@@ -1,9 +1,8 @@
-#
 define purgefiles::cronjob(
                             $path        = $name,
-                            $action      = "-delete",
+                            $action      = '-delete',
                             $mtime       = undef,
-                            $type        = "f",
+                            $type        = 'f',
                             $hour        = '0',
                             $minute      = '0',
                             $month       = undef,
@@ -13,6 +12,8 @@ define purgefiles::cronjob(
                             $file_iname  = undef,
                             $cronjobname = undef,
                             $compress    = false,
+                            $xdev        = false,
+                            $maxdepth    = undef,
                           ) {
 
   if($cronjobname!=undef)
@@ -21,13 +22,12 @@ define purgefiles::cronjob(
   }
   else
   {
-    $cron_job_name="cronjob purgefiles ${name} ${path} ${mtime} ${type} ${hour} ${minute} ${month} ${monthday} ${weekday} ${ensure} ${file_iname}"
+    $cron_job_name="purgefiles ${name} ${path} ${mtime} ${type} ${hour} ${minute} ${month} ${monthday} ${weekday} ${ensure} ${file_iname}"
   }
 
-  #"find ${path} ${type} -mtime ${mtime} ${action}"
   cron { $cron_job_name:
     ensure   => $ensure,
-    command  => inline_template('find <%= @path %> <% if defined?(@file_iname) %>-iname <%= @file_iname %><% end %> <% if defined?(@type) %>-type <%= @type %><% end %> <% if defined?(@mtime) %>-mtime <%= @mtime %><% end %> <% if @compress %>-exec gzip {} \;<% else %><%= @action %><% end %>'),
+    command  => template("${module_name}/purge.erb"),
     user     => 'root',
     hour     => $hour,
     minute   => $minute,
